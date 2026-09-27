@@ -3,6 +3,7 @@ const items = [
 ];
 const admin = document.body.dataset.admin === "true";
 let state = {}, filter = "all", query = "", busy = false, loaded = false;
+let revision = 0, refreshFailed = false;
 const $ = (id) => document.getElementById(id);
 // Keep save feedback independent of the optional page footer.
 function setStatus(message) {
@@ -18,8 +19,11 @@ function setStatus(message) {
 const norm = (value) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 async function request(path, data) {
   const response = await fetch(path, { cache: "no-store", ...(data ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) } : {}) });
-  const value = await response.json();
-  if (!response.ok) throw Error(value.error || "Não foi possível atualizar.");
+  const value = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    if (response.status === 401 && admin && path !== "/api/login") showLogin("Sua sessão expirou. Entre novamente para editar.");
+    throw Error(response.status === 429 ? "Muitas tentativas. Aguarde um minuto e tente novamente." : value.error || "Não foi possível atualizar. Tente novamente.");
+  }
   return value;
 }
 function render() {
@@ -27,7 +31,7 @@ function render() {
   items.forEach(([title, year], id) => {
     const checked = !!state[id]; if (checked) done++;
     if ((filter === "done" && !checked) || (filter === "pending" && checked) || !norm(title).includes(norm(query))) return;
-    shown++; const li = document.createElement("li"); li.className = checked ? "done" : "";
+    shown++; const li = document.createElement("li"); li.className = checked ? "done" : ""; li.dataset.id = id;
     li.innerHTML = `<span class="num">${id + 1}</span><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="4 12 9 18 20 6"/></svg></span><span class="txt"><span class="title"></span><div class="year">${year} · ${checked ? "Assistido" : "Para assistir"}</div></span>`;
     li.querySelector(".title").textContent = title;
     if (admin && loaded) { li.tabIndex = 0; li.setAttribute("role", "checkbox"); li.setAttribute("aria-checked", String(checked)); const toggle = () => update(id, !checked); li.addEventListener("click", toggle); li.addEventListener("keydown", (event) => { if (event.key === " " || event.key === "Enter") { event.preventDefault(); toggle(); } }); }
@@ -41,30 +45,34 @@ function render() {
 }
 async function refresh() {
   if (busy || document.hidden) return;
+  const startedAt = revision;
   try {
     const result = await request("/api/progress");
-    if (busy) return;
+    if (busy || startedAt !== revision) return;
     const changed = !loaded || items.some((_, id) => !!state[id] !== !!result.state[id]);
     state = result.state; loaded = true;
-    if (changed) { render(); setStatus(admin ? "Alterações salvas online" : "Lista compartilhada · Atualização automática"); }
+    if (changed) render();
+    if (changed || refreshFailed) setStatus(admin ? "Alterações salvas online" : "Lista compartilhada · Atualização automática");
+    refreshFailed = false;
   }
-  catch { if (!busy) setStatus("Não foi possível carregar a lista. Tentando novamente…"); }
+  catch { if (!busy && startedAt === revision) { refreshFailed = true; setStatus("Não foi possível carregar a lista. Tentando novamente…"); } }
 }
 async function update(id, done) {
-  if (busy) return; busy = true;
-  try { setStatus("Salvando…"); state = (await request("/api/progress", { id, done })).state; render(); setStatus("Alteração salva para todos"); }
+  if (busy) return; busy = true; revision++;
+  try { setStatus("Salvando…"); state = (await request("/api/progress", { id, done })).state; render(); document.querySelector(`li[data-id="${id}"]`)?.focus(); setStatus("Alteração salva para todos"); }
   catch (error) { setStatus(error.message); } finally { busy = false; }
 }
 document.querySelectorAll("[data-filter]").forEach((button) => button.addEventListener("click", () => { filter = button.dataset.filter; document.querySelectorAll("[data-filter]").forEach((item) => item.setAttribute("aria-pressed", String(item === button))); render(); }));
 $("search").addEventListener("input", (event) => { query = event.target.value; render(); });
 if (admin) {
   $("logout").addEventListener("click", async () => { if (busy) return; try { await request("/api/logout", {}); location.replace("/admin/"); } catch (error) { setStatus(error.message); } });
-  $("reset").addEventListener("click", async () => { if (busy || !confirm("Desmarcar todos os filmes para todo o grupo?")) return; busy = true; try { setStatus("Reiniciando…"); state = (await request("/api/reset", {})).state; render(); setStatus("Maratona reiniciada para todos"); } catch (error) { setStatus(error.message); } finally { busy = false; } });
+  $("reset").addEventListener("click", async () => { if (busy || !confirm("Desmarcar todos os filmes para todo o grupo?")) return; busy = true; revision++; try { setStatus("Reiniciando…"); state = (await request("/api/reset", {})).state; render(); setStatus("Maratona reiniciada para todos"); } catch (error) { setStatus(error.message); } finally { busy = false; } });
 }
 render(); refresh(); setInterval(refresh, 5000); document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
 
 
-if (document.body.dataset.admin === "true") {
+function showLogin(message = "") {
+  if (document.querySelector(".admin-gate")) return;
   const gate = document.createElement("div");
   gate.className = "admin-gate";
   gate.setAttribute("role", "dialog");
@@ -82,9 +90,7 @@ if (document.body.dataset.admin === "true") {
     submit.textContent = "Entrando…";
     error.textContent = "";
     try {
-      const response = await fetch("/api/login", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:input.value})});
-      const data = await response.json();
-      if (!response.ok) throw Error(data.error || "Senha incorreta.");
+      await request("/api/login", {password: input.value});
       gate.remove();
       document.querySelector(".wrap").inert = false;
       await refresh();
@@ -93,6 +99,8 @@ if (document.body.dataset.admin === "true") {
     finally { submit.disabled = false; submit.textContent = "Entrar"; }
   });
   document.body.append(gate);
+  gate.querySelector("[role=alert]").textContent = message;
   document.querySelector(".wrap").inert = true;
   gate.querySelector("input").focus();
 }
+if (admin) showLogin();

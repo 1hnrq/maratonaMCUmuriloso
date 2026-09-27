@@ -21,3 +21,8 @@
 }
 .admin-gate button:disabled { opacity: .65; cursor: wait; }
 #status { margin: 8px 0 16px; font: 13px/1.5 "Segoe UI", Arial, sans-serif; color: var(--sub); }
+.readonly li { cursor: default; user-select: text; }
+.adminbar { flex-wrap: wrap; }
+.adminbar > span { display: flex; flex-wrap: wrap; gap: 8px; }
+.admin-gate { overflow-y: auto; }
+.admin-gate form { max-height: 100%; overflow-y: auto; }

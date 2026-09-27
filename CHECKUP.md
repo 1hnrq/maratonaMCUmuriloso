@@ -1,0 +1,32 @@
+# Revisão de 27/09/2026
+
+## Corrigido
+
+- Sair invalida a sessão no servidor, além de apagar o cookie do navegador.
+- Login separado com limite de 10 requisições por minuto por IP/domínio, configurado na Netlify.
+- Ao receber sessão expirada, a página volta a pedir a senha.
+- Respostas inválidas e limitação de tentativas mostram mensagens compreensíveis.
+- JSON inválido é rejeitado como erro de entrada (400), sem aparentar falha do servidor.
+- Leituras iniciadas antes de uma gravação não sobrescrevem o resultado novo na tela.
+- A mensagem de falha de conexão é removida quando o carregamento volta a funcionar.
+- Botões do administrador podem quebrar linha em telas pequenas.
+- Página pública não convida mais o visitante a marcar filmes.
+- Cabeçalhos impedem incorporar a página em um iframe de outro site.
+- Versões das dependências registradas no package-lock.json.
+
+## Validação
+
+- `node --test tests/api.test.mjs`: leitura pública, bloqueio de gravação anônima, senha incorreta, entrada inválida, origem externa, gravação e reinício, revogação e expiração de sessão.
+- Testes da API usam a implementação real com armazenamento em memória; não alteram a maratona publicada.
+- Navegador: login, marcar, desmarcar pelo teclado, filtros, busca sem acentos, saída e largura móvel de 390px sem rolagem horizontal.
+- `npm audit --omit=dev`: nenhuma vulnerabilidade conhecida encontrada nesta data. Não é garantia de ausência de falhas.
+- O limite de tentativas depende da infraestrutura Netlify; não é executado pelo servidor local de teste. A aplicação da regra pode atrasar alguns segundos, conforme a [documentação Netlify](https://docs.netlify.com/manage/security/secure-access-to-sites/rate-limiting/).
+
+## Melhorias futuras
+
+- Backup/exportação do progresso e opção de desfazer um reinício acidental.
+- O progresso é salvo em um único objeto. Duas edições em aparelhos diferentes exatamente ao mesmo tempo podem se sobrepor. Se esse uso for necessário, migrar para armazenamento com transações; atualmente o uso recomendado é um administrador editando em um aparelho por vez.
+- A senha alterada no painel não revoga automaticamente sessões existentes; elas duram até 12 horas ou até sair. Uma versão futura pode oferecer “sair de todos os aparelhos”.
+- Registros de revogação permanecem no armazenamento; uma limpeza periódica pode ser adicionada se o uso crescer.
+
+Esta revisão cobre o funcionamento do site e os controles de acesso acima. Não inclui uma auditoria editorial da ordem e dos lançamentos dos filmes.

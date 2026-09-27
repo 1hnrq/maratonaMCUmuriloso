@@ -36,6 +36,7 @@ async function isAdmin(request) {
   if (!token || !/^[a-f0-9]{64}$/.test(token)) return false;
   const sessions = (await store().get("sessions", { type: "json", consistency: "strong" })) || {};
   const id = await hash(token);
+  if (await store().get(`revoked/${id}`, { type: "json" })) return false;
   if (!sessions[id] || sessions[id] < Date.now()) return false;
   return true;
 }
@@ -43,10 +44,15 @@ async function getProgress() {
   return (await store().get("progress", { type: "json", consistency: "strong" })) || {};
 }
 async function readJSON(request) {
-  if (!request.headers.get("content-type")?.startsWith("application/json")) throw new Error("invalid");
+  const invalid = () => Object.assign(new Error("Dados inválidos."), { status: 400 });
+  if (!request.headers.get("content-type")?.startsWith("application/json")) throw invalid();
   const text = await request.text();
-  if (text.length > 4096) throw new Error("invalid");
-  return JSON.parse(text);
+  if (text.length > 4096) throw invalid();
+  try {
+    const value = JSON.parse(text);
+    if (!value || typeof value !== "object" || Array.isArray(value)) throw invalid();
+    return value;
+  } catch { throw invalid(); }
 }
 export default async (request) => {
   try {
@@ -70,8 +76,15 @@ export default async (request) => {
       return respond({ ok: true }, 200, { "Set-Cookie": cookie(request, raw, 43200) });
     }
 
+    if (pathname === "/api/logout") {
+      const token = request.headers.get("cookie")?.split(";").map(part => part.trim())
+        .find(part => part.startsWith(cookieName(request) + "="))?.split("=")[1];
+      if (token && await isAdmin(request)) {
+        await store().setJSON(`revoked/${await hash(token)}`, true);
+      }
+      return respond({ ok: true }, 200, { "Set-Cookie": cookie(request, "", 0) });
+    }
     if (!(await isAdmin(request))) return respond({ error: "Entre com a senha de administrador para editar." }, 401);
-    if (pathname === "/api/logout") return respond({ ok: true }, 200, { "Set-Cookie": cookie(request, "", 0) });
     if (pathname === "/api/progress") {
       const input = await readJSON(request);
       if (!Number.isInteger(input.id) || input.id < 0 || input.id > 36 || typeof input.done !== "boolean")
@@ -87,8 +100,9 @@ export default async (request) => {
     }
     return respond({ error: "Não encontrado." }, 404);
   } catch (error) {
+    if (error?.status === 400) return respond({ error: error.message }, 400);
     console.error("MCU API error", error instanceof Error ? error.message : "unknown");
     return respond({ error: "Não foi possível concluir. Tente novamente." }, 503);
   }
 };
-export const config = { path: "/api/*" };
+export const config = { path: ["/api/progress", "/api/reset", "/api/logout"] };
