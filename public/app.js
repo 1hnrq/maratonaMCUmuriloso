@@ -45,3 +45,23 @@ if (admin) {
   $("reset").addEventListener("click", async () => { if (!confirm("Desmarcar todos os filmes para todo o grupo?")) return; busy = true; try { state = (await request("/api/reset", {})).state; render(); $("status").textContent = "Maratona reiniciada para todos"; } catch (error) { $("status").textContent = error.message; } finally { busy = false; } });
 }
 render(); refresh(); setInterval(refresh, 5000); document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
+
+
+if (document.body.dataset.admin === "true") {
+  const gate = document.createElement("div");
+  gate.style.cssText = "position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:20px;background:rgba(4,6,11,.86);backdrop-filter:blur(4px)";
+  gate.innerHTML = '<form style="width:min(100%,420px);padding:30px;background:#131923;color:#f4f5f7;border:1px solid #7d382f;border-top:4px solid #ed1d24;border-radius:8px;box-shadow:0 22px 80px #000;font-family:Segoe UI,Arial,sans-serif"><h1 style="margin:0 0 12px;font-size:28px">Acesso de administrador</h1><p>Digite sua senha para editar a maratona.</p><label for="admin-password">Senha</label><input id="admin-password" type="password" autocomplete="current-password" required maxlength="256" style="display:block;width:100%;box-sizing:border-box;margin:8px 0 16px;padding:12px"><button type="submit" style="width:100%;padding:12px;background:#ed1d24;border:0;color:white;font-weight:700">Entrar</button><p role="alert"></p></form>';
+  gate.querySelector("form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const input = gate.querySelector("input");
+    const error = gate.querySelector("[role=alert]");
+    try {
+      const response = await fetch("/api/login", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:input.value})});
+      const data = await response.json();
+      if (!response.ok) throw Error(data.error || "Senha incorreta.");
+      gate.remove();
+    } catch (reason) { error.textContent = reason.message || "Não foi possível entrar."; }
+  });
+  document.body.append(gate);
+  gate.querySelector("input").focus();
+}
