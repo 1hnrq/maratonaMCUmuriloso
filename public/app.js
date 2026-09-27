@@ -4,6 +4,17 @@ const items = [
 const admin = document.body.dataset.admin === "true";
 let state = {}, filter = "all", query = "", busy = false, loaded = false;
 const $ = (id) => document.getElementById(id);
+// Keep save feedback independent of the optional page footer.
+function setStatus(message) {
+  let status = $("status");
+  if (!status) {
+    status = document.createElement("p");
+    status.id = "status";
+    status.setAttribute("role", "status");
+    $("results").after(status);
+  }
+  status.textContent = message;
+}
 const norm = (value) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 async function request(path, data) {
   const response = await fetch(path, { cache: "no-store", ...(data ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) } : {}) });
@@ -30,38 +41,58 @@ function render() {
 }
 async function refresh() {
   if (busy || document.hidden) return;
-  try { const result = await request("/api/progress"); state = result.state; loaded = true; render(); $("status").textContent = admin ? "Alterações salvas online" : "Lista compartilhada · Atualização automática"; }
-  catch { $("status").textContent = "Não foi possível carregar a lista. Tentando novamente…"; }
+  try {
+    const result = await request("/api/progress");
+    if (busy) return;
+    const changed = !loaded || items.some((_, id) => !!state[id] !== !!result.state[id]);
+    state = result.state; loaded = true;
+    if (changed) { render(); setStatus(admin ? "Alterações salvas online" : "Lista compartilhada · Atualização automática"); }
+  }
+  catch { if (!busy) setStatus("Não foi possível carregar a lista. Tentando novamente…"); }
 }
 async function update(id, done) {
-  if (busy) return; busy = true; $("status").textContent = "Salvando…";
-  try { state = (await request("/api/progress", { id, done })).state; render(); $("status").textContent = "Alteração salva para todos"; }
-  catch (error) { $("status").textContent = error.message; } finally { busy = false; }
+  if (busy) return; busy = true;
+  try { setStatus("Salvando…"); state = (await request("/api/progress", { id, done })).state; render(); setStatus("Alteração salva para todos"); }
+  catch (error) { setStatus(error.message); } finally { busy = false; }
 }
 document.querySelectorAll("[data-filter]").forEach((button) => button.addEventListener("click", () => { filter = button.dataset.filter; document.querySelectorAll("[data-filter]").forEach((item) => item.setAttribute("aria-pressed", String(item === button))); render(); }));
 $("search").addEventListener("input", (event) => { query = event.target.value; render(); });
 if (admin) {
-  $("logout").addEventListener("click", async () => { await request("/api/logout", {}); location.replace("/admin/"); });
-  $("reset").addEventListener("click", async () => { if (!confirm("Desmarcar todos os filmes para todo o grupo?")) return; busy = true; try { state = (await request("/api/reset", {})).state; render(); $("status").textContent = "Maratona reiniciada para todos"; } catch (error) { $("status").textContent = error.message; } finally { busy = false; } });
+  $("logout").addEventListener("click", async () => { if (busy) return; try { await request("/api/logout", {}); location.replace("/admin/"); } catch (error) { setStatus(error.message); } });
+  $("reset").addEventListener("click", async () => { if (busy || !confirm("Desmarcar todos os filmes para todo o grupo?")) return; busy = true; try { setStatus("Reiniciando…"); state = (await request("/api/reset", {})).state; render(); setStatus("Maratona reiniciada para todos"); } catch (error) { setStatus(error.message); } finally { busy = false; } });
 }
 render(); refresh(); setInterval(refresh, 5000); document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
 
 
 if (document.body.dataset.admin === "true") {
   const gate = document.createElement("div");
+  gate.className = "admin-gate";
+  gate.setAttribute("role", "dialog");
+  gate.setAttribute("aria-modal", "true");
+  gate.setAttribute("aria-label", "Acesso de administrador");
   gate.style.cssText = "position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:20px;background:rgba(4,6,11,.86);backdrop-filter:blur(4px)";
   gate.innerHTML = '<form style="width:min(100%,420px);padding:30px;background:#131923;color:#f4f5f7;border:1px solid #7d382f;border-top:4px solid #ed1d24;border-radius:8px;box-shadow:0 22px 80px #000;font-family:Segoe UI,Arial,sans-serif"><h1 style="margin:0 0 12px;font-size:28px">Acesso de administrador</h1><p>Digite sua senha para editar a maratona.</p><label for="admin-password">Senha</label><input id="admin-password" type="password" autocomplete="current-password" required maxlength="256" style="display:block;width:100%;box-sizing:border-box;margin:8px 0 16px;padding:12px"><button type="submit" style="width:100%;padding:12px;background:#ed1d24;border:0;color:white;font-weight:700">Entrar</button><p role="alert"></p></form>';
   gate.querySelector("form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const input = gate.querySelector("input");
     const error = gate.querySelector("[role=alert]");
+    const submit = gate.querySelector("button");
+    if (submit.disabled) return;
+    submit.disabled = true;
+    submit.textContent = "Entrando…";
+    error.textContent = "";
     try {
       const response = await fetch("/api/login", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:input.value})});
       const data = await response.json();
       if (!response.ok) throw Error(data.error || "Senha incorreta.");
       gate.remove();
+      document.querySelector(".wrap").inert = false;
+      await refresh();
+      $("search").focus();
     } catch (reason) { error.textContent = reason.message || "Não foi possível entrar."; }
+    finally { submit.disabled = false; submit.textContent = "Entrar"; }
   });
   document.body.append(gate);
+  document.querySelector(".wrap").inert = true;
   gate.querySelector("input").focus();
 }
