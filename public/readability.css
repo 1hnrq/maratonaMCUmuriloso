@@ -48,8 +48,8 @@ body::before {
   background-repeat: no-repeat;
   background-size: min(92vw, 1500px) auto;
   background-position: center 42%;
-  opacity: .1;
-  filter: grayscale(1);
+  opacity: .4;
+  filter: none;
 }
 body::after {
   background: radial-gradient(ellipse at 50% 0%, rgba(85,15,24,.12), transparent 65%);
@@ -60,7 +60,7 @@ body::after {
   box-shadow: 0 16px 70px #0005;
 }
 @media (max-width: 700px) {
-  body::before { background-size: 94vw auto; background-position: center 36%; opacity: .12; }
+  body::before { background-size: 94vw auto; background-position: center 36%; opacity: .45; }
   .wrap { background: rgba(9,12,19,.5); }
 }
 
