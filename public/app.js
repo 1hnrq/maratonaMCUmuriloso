@@ -34,6 +34,15 @@ function render() {
     shown++; const li = document.createElement("li"); li.className = checked ? "done" : ""; li.dataset.id = id;
     li.innerHTML = `<span class="num">${id + 1}</span><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="4 12 9 18 20 6"/></svg></span><span class="txt"><span class="title"></span><div class="year">${year} · ${checked ? "Assistido" : "Para assistir"}</div></span>`;
     li.querySelector(".title").textContent = title;
+    const poster = document.createElement("img");
+    poster.className = "card-poster";
+    poster.alt = "";
+    poster.setAttribute("aria-hidden", "true");
+    poster.loading = shown <= 4 ? "eager" : "lazy";
+    poster.decoding = "async";
+    poster.src = `/posters/${id}.jpg`;
+    poster.addEventListener("error", () => poster.remove(), { once: true });
+    li.prepend(poster);
     if (admin && loaded) { li.tabIndex = 0; li.setAttribute("role", "checkbox"); li.setAttribute("aria-checked", String(checked)); const toggle = () => update(id, !checked); li.addEventListener("click", toggle); li.addEventListener("keydown", (event) => { if (event.key === " " || event.key === "Enter") { event.preventDefault(); toggle(); } }); }
     list.append(li);
   });
