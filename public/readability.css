@@ -41,6 +41,29 @@
 .admin-gate { overflow-y: auto; }
 .admin-gate form { max-height: 100%; overflow-y: auto; }
 
+/* Quiet Marvel watermark behind the movie artwork. */
+body { background: #07090d; }
+body::before {
+  background-image: url('/marvel-logo.svg');
+  background-repeat: no-repeat;
+  background-size: min(92vw, 1500px) auto;
+  background-position: center 42%;
+  opacity: .1;
+  filter: grayscale(1);
+}
+body::after {
+  background: radial-gradient(ellipse at 50% 0%, rgba(85,15,24,.12), transparent 65%);
+}
+.wrap {
+  background: rgba(9,12,19,.55);
+  border-color: #252a34;
+  box-shadow: 0 16px 70px #0005;
+}
+@media (max-width: 700px) {
+  body::before { background-size: 94vw auto; background-position: center 36%; opacity: .12; }
+  .wrap { background: rgba(9,12,19,.5); }
+}
+
 /* Movie artwork stays decorative; the original labels remain accessible. */
 .list li:not(.empty) {
   position: relative;
