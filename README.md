@@ -1,21 +1,86 @@
-# Maratona MCU do Muriloso
+<p align="center">
+  <img src=".github/assets/banner.svg" alt="Maratona MCU do Muriloso" width="960">
+</p>
 
-O projeto tem duas páginas:
+<p align="center">
+  <strong>A maratona Marvel da comunidade, filme por filme.</strong><br>
+  Pôsteres, busca e progresso compartilhado para acompanhar os reacts do Muriloso.
+</p>
 
-- `/` — lista compartilhada para seus amigos verem.
-- `/admin/` — área que pede sua senha para marcar, desmarcar e reiniciar a lista.
+<p align="center">
+  <a href="https://murilosomarvel.netlify.app/">🍿 Abrir o site</a> ·
+  <a href="https://cinefy.gg/muriloso">▶ Ver os VODs</a> ·
+  <a href="docs/MAINTENANCE.md">🛠 Manutenção</a> ·
+  <a href="docs/DEPLOYMENT.md">🚀 Publicação</a>
+</p>
 
-## Publicar na Netlify
+## Recursos
 
-1. Envie o conteúdo desta pasta para o repositório GitHub.
-2. Na Netlify, use **Add new site** → **Import an existing project** → **GitHub**.
-3. Escolha o repositório `1hnrq/maratonaMCUmuriloso`.
-4. Mantenha **Build command** vazio e defina **Publish directory** como `public`.
-5. Antes de publicar, em **Project configuration** → **Environment variables**, crie a variável `ADMIN_PASSWORD` com uma senha forte.
-6. Publique. A Netlify cria automaticamente o armazenamento compartilhado da lista.
+- **38 títulos:** filmes e as duas temporadas de Loki na sequência da maratona.
+- **Cards com pôsteres:** arte de cada título e destaque verde nos assistidos.
+- **Progresso compartilhado:** alterações do administrador aparecem para todos.
+- **Busca sem acentos e filtros:** todos, para assistir e assistidos.
+- **Próximo capítulo:** indica o primeiro título ainda não concluído.
+- **Layout adaptável:** leitura no computador e no celular.
 
-Não coloque a senha no GitHub. Ela só deve existir nas variáveis de ambiente da Netlify.
+## Como usar
 
-## Atualizações
+| Página | Público | Função |
+| --- | --- | --- |
+| [`/`](https://murilosomarvel.netlify.app/) | Comunidade | Consultar, buscar e filtrar |
+| `/admin/` | Administrador | Entrar com senha, marcar títulos e reiniciar o progresso |
 
-Sempre que você enviar uma alteração ao repositório, a Netlify publica a nova versão. As marcações ficam preservadas porque são armazenadas fora dos arquivos do site.
+A página consulta o progresso a cada **5 segundos** enquanto está visível. A senha de administração fica nas variáveis de ambiente do Netlify.
+
+## Estrutura
+
+```text
+public/                    Site publicado
+├── index.html             Página da comunidade
+├── admin/index.html       Administração
+├── app.js                 Catálogo, busca, filtros e progresso
+├── readability.css        Ajustes visuais e cards com pôsteres
+├── marvel-logo.svg        Marca-d’água bordô
+└── posters/               Imagens por ID estável e fontes
+netlify/functions/         Login e API de progresso
+tests/                     Testes da API e do catálogo
+docs/                      Guias e registro de revisão
+.github/                   Banner e modelos de issues
+netlify.toml               Configuração de publicação
+```
+
+## Desenvolvimento
+
+Com **Node.js 24** e npm, na pasta do repositório:
+
+```bash
+npm ci
+npm test
+```
+
+Os testes usam armazenamento em memória e não alteram o site publicado. Abrir somente o HTML localmente não reproduz a API, que depende das funções e do armazenamento do Netlify.
+
+## Guias
+
+- [Manutenção: filmes, pôsteres e visual](docs/MAINTENANCE.md)
+- [Publicação e administração](docs/DEPLOYMENT.md)
+- [Como contribuir](CONTRIBUTING.md)
+- [Revisão histórica de 27/09/2026](docs/CHECKUP-2026-09-27.md)
+
+## Preservar o progresso
+
+Cada título tem um **ID estável**, separado de sua posição na tela. Homem-Formiga aparece na posição 13 e usa o ID `37`. Reordenar a lista não deve mudar os IDs, pois eles vinculam as marcações e os pôsteres.
+
+O progresso fica no **Netlify Blobs**, separado dos arquivos do site. Um deploy preserva os dados. O botão de reiniciar limpa as marcações compartilhadas.
+
+## Limites conhecidos
+
+- Recomenda-se um administrador editando em um aparelho por vez; gravações simultâneas podem se sobrepor.
+- As sessões duram até 12 horas. Alterar a senha não revoga automaticamente sessões abertas.
+- A sequência é a seleção desta maratona, não um catálogo completo de todas as produções Marvel.
+
+Os pôsteres e a marca Marvel pertencem aos respectivos titulares. Consulte [as fontes](public/posters/SOURCES.md); a presença das imagens no projeto não concede licença de redistribuição.
+
+---
+
+<sub>Desenvolvido com auxílio do OpenAI Codex.</sub>
