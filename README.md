@@ -79,7 +79,13 @@ O progresso fica no **Netlify Blobs**, separado dos arquivos do site. Um deploy 
 - As sessões duram até 12 horas. Alterar a senha não revoga automaticamente sessões abertas.
 - A sequência é a seleção desta maratona, não um catálogo completo de todas as produções Marvel.
 
-Os pôsteres e a marca Marvel pertencem aos respectivos titulares. Consulte [as fontes](public/posters/SOURCES.md); a presença das imagens no projeto não concede licença de redistribuição.
+## Finalidade acadêmica e direitos das imagens
+
+Projeto apresentado para avaliação acadêmica. É uma iniciativa não oficial, sem vínculo, patrocínio ou endosso da Marvel ou da Disney.
+
+Os pôsteres e a marca Marvel pertencem aos respectivos titulares. Consulte [as fontes](public/posters/SOURCES.md); a presença das imagens no projeto não concede licença de redistribuição. A finalidade acadêmica e este aviso não substituem eventual autorização dos titulares.
+
+O código está disponível para consulta; ainda não foi definida uma licença aberta para sua reutilização. Isso não altera os direitos sobre as imagens e marcas de terceiros.
 
 ---
 

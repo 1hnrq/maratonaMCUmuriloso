@@ -31,7 +31,15 @@ As sessões já criadas podem continuar válidas até expirarem ou o administrad
 4. No Netlify, acompanhe a implantação vinculada ao commit. Espere a conclusão antes de conferir a página publicada.
 5. Abra o site e confirme a alteração, os pôsteres e o carregamento do progresso. Confira também `/admin/` se a mudança o afetar.
 
-Se o Netlify gerar uma prévia para o pull request, use esse endereço para revisar a aparência antes da publicação em produção. Uma prévia deve ter suas variáveis de ambiente configuradas se o teste depender do login.
+## Proteção de contribuições externas
+
+As prévias automáticas de pull requests estão desativadas no painel do Netlify: **Developer settings → Branches and deploy contexts → Deploy Previews → None**. A branch de produção continua sendo `main`; outras branches também não são publicadas automaticamente. Essa configuração fica no painel, não em `netlify.toml`.
+
+Com isso, abrir um pull request não executa automaticamente o código proposto em uma prévia com variáveis do projeto. A senha administrativa continua armazenada no Netlify e marcada como valor secreto, fora do repositório.
+
+Se futuramente habilitar prévias, confira **Environment variables → Site policies → Sensitive variable policy** e exija aprovação de deploys não confiáveis. Revise o código antes de aprovar; nunca use a opção de liberar contribuições externas sem restrições. A política está disponível quando o repositório vinculado é público. Consulte a [documentação Netlify](https://docs.netlify.com/build/environment-variables/get-started/#sensitive-variable-policy).
+
+Use variáveis e dados separados para testes; não compartilhe a senha de produção com ambientes de contribuições externas.
 
 ## Quando a alteração não aparece
 
