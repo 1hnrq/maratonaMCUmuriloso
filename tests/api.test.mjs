@@ -39,7 +39,11 @@ test('authenticated updates persist; invalid titles are rejected; reset clears p
   const cookie = await login();
   assert.equal((await call('/api/progress', {id:2,done:true}, cookie)).status, 200);
   assert.equal((await (await call('/api/progress')).json()).state[2], true);
-  for (const data of [{id:-1,done:true},{id:37,done:true},{id:0,done:'yes'}]) {
+  assert.equal((await call('/api/progress', {id:37,done:true}, cookie)).status, 200);
+  const progress = (await (await call('/api/progress')).json()).state;
+  assert.equal(progress[37], true);
+  assert.equal(progress[2], true);
+  for (const data of [{id:-1,done:true},{id:38,done:true},{id:0,done:'yes'}]) {
     assert.equal((await call('/api/progress', data, cookie)).status, 400);
   }
   assert.equal((await call('/api/progress', {id:2,done:false}, cookie, {Origin:'https://other.example'})).status, 403);

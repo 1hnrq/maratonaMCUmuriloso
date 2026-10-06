@@ -1,6 +1,8 @@
 const items = [
   ["Capitão América: O Primeiro Vingador","2011"],["Homem de Ferro","2008"],["Homem de Ferro 2","2010"],["O Incrível Hulk","2008"],["Thor","2011"],["Os Vingadores","2012"],["Thor: O Mundo Sombrio","2013"],["Homem de Ferro 3","2013"],["Capitão América: O Soldado Invernal","2014"],["Guardiões da Galáxia","2014"],["Guardiões da Galáxia Vol. 2","2017"],["Vingadores: Era de Ultron","2015"],["Capitão América: Guerra Civil","2016"],["Viúva Negra","2021"],["Homem-Aranha: De Volta ao Lar","2017"],["Doutor Estranho","2016"],["Pantera Negra","2018"],["Thor: Ragnarok","2017"],["Vingadores: Guerra Infinita","2018"],["Homem-Formiga e a Vespa","2018"],["Vingadores: Ultimato","2019"],["Loki — 1ª Temporada","2021"],["Loki — 2ª Temporada","2023"],["Homem-Aranha: Longe de Casa","2019"],["Shang-Chi e a Lenda dos Dez Anéis","2021"],["Eternos","2021"],["Homem-Aranha: Sem Volta para Casa","2021"],["Doutor Estranho no Multiverso da Loucura","2022"],["Thor: Amor e Trovão","2022"],["Pantera Negra: Wakanda Para Sempre","2022"],["Homem-Formiga e a Vespa: Quantumania","2023"],["Guardiões da Galáxia Vol. 3","2023"],["Deadpool & Wolverine","2024"],["Capitão América: Admirável Mundo Novo","2025"],["Thunderbolts*","2025"],["Quarteto Fantástico: Primeiros Passos","2025"],["Homem-Aranha: Um Novo Dia","2026"],
-];
+].map(([title, year], id) => [title, year, id]);
+// Progress and poster IDs remain stable when display order changes.
+items.splice(12, 0, ["Homem-Formiga", "2015", 37]);
 const admin = document.body.dataset.admin === "true";
 let state = {}, filter = "all", query = "", busy = false, loaded = false;
 let revision = 0, refreshFailed = false;
@@ -28,11 +30,11 @@ async function request(path, data) {
 }
 function render() {
   const list = $("list"); list.innerHTML = ""; let done = 0, shown = 0;
-  items.forEach(([title, year], id) => {
+  items.forEach(([title, year, id], position) => {
     const checked = !!state[id]; if (checked) done++;
     if ((filter === "done" && !checked) || (filter === "pending" && checked) || !norm(title).includes(norm(query))) return;
     shown++; const li = document.createElement("li"); li.className = checked ? "done" : ""; li.dataset.id = id;
-    li.innerHTML = `<span class="num">${id + 1}</span><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="4 12 9 18 20 6"/></svg></span><span class="txt"><span class="title"></span><div class="year">${year} · ${checked ? "Assistido" : "Para assistir"}</div></span>`;
+    li.innerHTML = `<span class="num">${position + 1}</span><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="4 12 9 18 20 6"/></svg></span><span class="txt"><span class="title"></span><div class="year">${year} · ${checked ? "Assistido" : "Para assistir"}</div></span>`;
     li.querySelector(".title").textContent = title;
     const poster = document.createElement("img");
     poster.className = "card-poster";
@@ -50,7 +52,7 @@ function render() {
   $("count").textContent = loaded ? `${done}/${items.length}` : `—/${items.length}`;
   $("fill").style.width = `${done / items.length * 100}%`;
   $("results").textContent = loaded ? `${shown} títulos exibidos · ${done} de ${items.length} assistidos` : "Carregando progresso…";
-  const next = items.findIndex((_, id) => !state[id]); $("next").textContent = !loaded ? "Carregando…" : next < 0 ? "Maratona completa!" : `${String(next + 1).padStart(2, "0")} · ${items[next][0]}`;
+  const next = items.findIndex(([, , id]) => !state[id]); $("next").textContent = !loaded ? "Carregando…" : next < 0 ? "Maratona completa!" : `${String(next + 1).padStart(2, "0")} · ${items[next][0]}`;
 }
 async function refresh() {
   if (busy || document.hidden) return;
@@ -58,7 +60,7 @@ async function refresh() {
   try {
     const result = await request("/api/progress");
     if (busy || startedAt !== revision) return;
-    const changed = !loaded || items.some((_, id) => !!state[id] !== !!result.state[id]);
+    const changed = !loaded || items.some(([, , id]) => !!state[id] !== !!result.state[id]);
     state = result.state; loaded = true;
     if (changed) render();
     if (changed || refreshFailed) setStatus(admin ? "Alterações salvas online" : "Lista compartilhada · Atualização automática");

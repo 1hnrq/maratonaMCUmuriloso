@@ -87,7 +87,7 @@ export default async (request) => {
     if (!(await isAdmin(request))) return respond({ error: "Entre com a senha de administrador para editar." }, 401);
     if (pathname === "/api/progress") {
       const input = await readJSON(request);
-      if (!Number.isInteger(input.id) || input.id < 0 || input.id > 36 || typeof input.done !== "boolean")
+      if (!Number.isInteger(input.id) || input.id < 0 || input.id > 37 || typeof input.done !== "boolean")
         return respond({ error: "Título inválido." }, 400);
       const progress = await getProgress();
       progress[input.id] = input.done;
