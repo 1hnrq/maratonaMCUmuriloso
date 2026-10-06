@@ -16,7 +16,7 @@
 
 ## Recursos
 
-- **38 títulos:** filmes e as duas temporadas de Loki na sequência da maratona.
+- **38 títulos:** filmes e as duas temporadas de Loki em ordem cronológica.
 - **Cards com pôsteres:** arte de cada título e destaque verde nos assistidos.
 - **Progresso compartilhado:** alterações do administrador aparecem para todos.
 - **Busca sem acentos e filtros:** todos, para assistir e assistidos.
@@ -69,7 +69,7 @@ Os testes usam armazenamento em memória e não alteram o site publicado. Abrir 
 
 ## Preservar o progresso
 
-Cada título tem um **ID estável**, separado de sua posição na tela. Homem-Formiga aparece na posição 13 e usa o ID `37`. Reordenar a lista não deve mudar os IDs, pois eles vinculam as marcações e os pôsteres.
+Cada título tem um **ID estável**, separado de sua posição na tela. Reordenar a lista não deve mudar os IDs, pois eles vinculam as marcações e os pôsteres.
 
 O progresso fica no **Netlify Blobs**, separado dos arquivos do site. Um deploy preserva os dados. O botão de reiniciar limpa as marcações compartilhadas.
 
