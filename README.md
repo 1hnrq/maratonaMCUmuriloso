@@ -4,7 +4,7 @@
 
 <p align="center">
   <strong>A maratona Marvel da comunidade, filme por filme.</strong><br>
-  Pôsteres, busca e progresso compartilhado para acompanhar os reacts do Muriloso.
+  Projeto desenvolvido para acompanhar os reacts e a maratona do streamer Muriloso.
 </p>
 
 <p align="center">
@@ -30,7 +30,16 @@
 | [`/`](https://murilosomarvel.netlify.app/) | Comunidade | Consultar, buscar e filtrar |
 | `/admin/` | Administrador | Entrar com senha, marcar títulos e reiniciar o progresso |
 
-A página consulta o progresso a cada **5 segundos** enquanto está visível. A senha de administração fica nas variáveis de ambiente do Netlify.
+A área pública foi criada para a comunidade que acompanha o streamer Muriloso. A administração do catálogo e do progresso é restrita ao responsável pelo projeto. A página consulta o progresso a cada **5 segundos** enquanto está visível. A senha de administração fica nas variáveis de ambiente do Netlify.
+
+## Tecnologias utilizadas
+
+- HTML
+- CSS
+- JavaScript
+- Node.js
+- Netlify Functions
+- Netlify Blobs
 
 ## Estrutura
 
@@ -49,7 +58,7 @@ docs/                      Guias e registro de revisão
 netlify.toml               Configuração de publicação
 ```
 
-## Desenvolvimento
+## Como executar o projeto
 
 Com **Node.js 24** e npm, na pasta do repositório:
 
@@ -60,33 +69,13 @@ npm test
 
 Os testes usam armazenamento em memória e não alteram o site publicado. Abrir somente o HTML localmente não reproduz a API, que depende das funções e do armazenamento do Netlify.
 
+## Controle de alterações
+
+Embora o repositório seja público para consulta e demonstração do projeto, ele não está aberto para que qualquer pessoa faça alterações. Mudanças no código, no catálogo e no progresso são realizadas somente pelo responsável pelo projeto.
+
 ## Guias
 
 - [Manutenção: filmes, pôsteres e visual](docs/MAINTENANCE.md)
 - [Publicação e administração](docs/DEPLOYMENT.md)
 - [Como contribuir](CONTRIBUTING.md)
 - [Revisão histórica de 27/09/2026](docs/CHECKUP-2026-09-27.md)
-
-## Preservar o progresso
-
-Cada título tem um **ID estável**, separado de sua posição na tela. Reordenar a lista não deve mudar os IDs, pois eles vinculam as marcações e os pôsteres.
-
-O progresso fica no **Netlify Blobs**, separado dos arquivos do site. Um deploy preserva os dados. O botão de reiniciar limpa as marcações compartilhadas.
-
-## Limites conhecidos
-
-- Recomenda-se um administrador editando em um aparelho por vez; gravações simultâneas podem se sobrepor.
-- As sessões duram até 12 horas. Alterar a senha não revoga automaticamente sessões abertas.
-- A sequência é a seleção desta maratona, não um catálogo completo de todas as produções Marvel.
-
-## Finalidade acadêmica e direitos das imagens
-
-Projeto apresentado para avaliação acadêmica. É uma iniciativa não oficial, sem vínculo, patrocínio ou endosso da Marvel ou da Disney.
-
-Os pôsteres e a marca Marvel pertencem aos respectivos titulares. Consulte [as fontes](public/posters/SOURCES.md); a presença das imagens no projeto não concede licença de redistribuição. A finalidade acadêmica e este aviso não substituem eventual autorização dos titulares.
-
-O código está disponível para consulta; ainda não foi definida uma licença aberta para sua reutilização. Isso não altera os direitos sobre as imagens e marcas de terceiros.
-
----
-
-<sub>Desenvolvido com auxílio do OpenAI Codex.</sub>
